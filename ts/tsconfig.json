@@ -2,6 +2,7 @@
     "compilerOptions": {
         "declaration": true,
         "baseUrl": ".",
+        "esModuleInterop": true,
         "types": ["node"]
     }
 }

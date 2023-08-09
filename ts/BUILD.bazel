@@ -1,4 +1,10 @@
+load("@aspect_rules_swc//swc:defs.bzl", "swc")
 load("@aspect_rules_ts//ts:defs.bzl",  "ts_project", "ts_config")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
 
 ts_project(
     name = "lib",
@@ -7,12 +13,24 @@ ts_project(
         "main.ts"
     ],
     declaration = True,
+    transpiler = partial.make(
+        swc,
+        swcrc = ".swcrc",
+    ),
     deps = [
-        "//:node_modules/@types/node",
-        "//:node_modules/express",
+        ":node_modules/@types/node",
+        ":node_modules/@types/express",
+        ":node_modules/express",
     ],
     supports_workers = False,
-    # root_dir = "src",
+)
+
+js_binary(
+    name = "bin",
+    data = [
+        ":lib",
+    ],
+    entry_point = "main.js",
 )
 
 ts_config(
