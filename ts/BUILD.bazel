@@ -15,7 +15,7 @@ ts_project(
     declaration = True,
     transpiler = partial.make(
         swc,
-        swcrc = ".swcrc",
+        swcrc = "//:.swcrc",
     ),
     deps = [
         ":node_modules/@types/node",
