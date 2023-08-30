@@ -1,10 +1,18 @@
 load("@aspect_rules_swc//swc:defs.bzl", "swc")
 load("@aspect_rules_ts//ts:defs.bzl",  "ts_project", "ts_config")
-load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball", )
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_image_layer")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 
 npm_link_all_packages(name = "node_modules")
+
+ts_config(
+    name = "tsconfig",
+    src = ":tsconfig.json",
+    visibility = [":__subpackages__"],
+)
 
 ts_project(
     name = "lib",
@@ -26,16 +34,76 @@ ts_project(
 )
 
 js_binary(
-    name = "bin",
+    name = "binary",
     data = [
         ":lib",
     ],
     entry_point = "main.js",
 )
 
-ts_config(
-    name = "tsconfig",
-    src = ":tsconfig.json",
-    visibility = [":__subpackages__"],
+platform(
+    name = "linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:armv7",
+    ],
 )
 
+platform(
+    name = "macos_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+platform(
+    name = "linux_amd64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+js_image_layer(
+    name = "layers",
+    binary = ":binary",
+    root = "/app",
+    # platform = ":linux_arm64",
+    visibility = ["//visibility:__pkg__"],
+)
+
+oci_image(
+    name = "image",
+    # Since js_binary depends on bash we have to bring in a base image that has bash
+    base = "@debian",
+    cmd = ["/app/ts/binary"],
+    entrypoint = ["bash"],
+    tars = [
+        ":layers",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+oci_tarball(
+    name = "tarball",
+    image = ":image",
+    repo_tags = ["ts:latest"],
+)
+
+
+platform_transition_filegroup(
+    name = "transitioned_image",
+    srcs = [":image"],
+    target_platform = select({
+        "@platforms//cpu:arm64": ":linux_arm64",
+        "@platforms//cpu:x86_64": ":linux_amd64",
+        "//conditions:default": ":linux_arm64"
+    }),
+)
+
+oci_tarball(
+    name = "transitioned_tarball",
+    image = ":transitioned_image",
+    repo_tags = ["ts:latest"],
+)

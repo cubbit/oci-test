@@ -9,7 +9,7 @@ bazel_dep(name = "aspect_rules_js", version = "1.30.0")
 bazel_dep(name = "aspect_rules_ts", version = "1.4.5")
 bazel_dep(name = "aspect_rules_swc", version = "1.0.1")
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
-
+bazel_dep(name = "aspect_bazel_lib", version = "1.33.0")
 
 ################################################################################
 # rules_js
@@ -39,3 +39,23 @@ rules_ts_ext = use_extension(
 rules_ts_ext.deps()
 
 use_repo(rules_ts_ext, "npm_typescript")
+
+################################################################################
+# rules_oci
+################################################################################
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
+oci.pull(
+    name = "debian",
+    # tag = "latest",
+    digest = "sha256:9f76a008888da28c6490bedf7bdaa919bac9b2be827afd58d6eb1b916e1e5918",
+    image = "debian",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+        "linux/arm64/v7",
+    ]
+)
+
+use_repo(oci, "debian")
