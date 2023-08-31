@@ -10,7 +10,6 @@ bazel_dep(name = "aspect_rules_ts", version = "1.4.5")
 bazel_dep(name = "platforms", version = "0.0.7")
 bazel_dep(name = "bazel_features", version = "1.0.0")
 bazel_dep(name = "aspect_bazel_lib", version = "1.33.0")
-bazel_dep(name = "bazel_skylib", version = "1.4.1")
 bazel_dep(name = "rules_nodejs", version = "5.8.2")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
@@ -19,9 +18,7 @@ use_repo(node, "nodejs_toolchains")
 
 register_toolchains(
     "@nodejs_toolchains//:linux_arm64_toolchain_target", 
-    "@nodejs_toolchains//:linux_arm64_toolchain",
     "@nodejs_toolchains//:linux_amd64_toolchain_target", 
-    "@nodejs_toolchains//:linux_amd64_toolchain"
 )
 
 # ################################################################################
