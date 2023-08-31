@@ -6,7 +6,7 @@ settings:
 
 importers:
 
-  ts:
+  .:
     dependencies:
       express:
         specifier: ^4.18.2
